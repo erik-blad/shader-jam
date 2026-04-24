@@ -1,0 +1,53 @@
+// Pearl Iridescent Shader - Mother of pearl effect
+// Subtle pink, blue, and cream shifts
+
+uniform float2 iResolution;
+uniform float iTime;
+
+half4 main(float2 fragCoord) {
+    float2 uv = fragCoord / iResolution.xy;
+
+    // Create smooth flowing normals
+    float time = iTime * 0.2;
+    float2 warp = float2(
+        sin(uv.y * 3.0 + time) * 0.1,
+        cos(uv.x * 3.0 - time * 0.7) * 0.1
+    );
+
+    float2 warpedUV = uv + warp;
+
+    // Simulate viewing angle effect
+    float2 normal = normalize(float2(
+        sin(warpedUV.x * 6.28 + time * 0.5),
+        cos(warpedUV.y * 6.28 - time * 0.3)
+    ));
+
+    float fresnel = pow(1.0 - abs(dot(normal, float2(0, 1))), 2.0);
+
+    // Pearl base colors - soft pastels
+    float3 color1 = float3(0.95, 0.92, 0.98); // Pale lavender
+    float3 color2 = float3(0.98, 0.94, 0.90); // Cream
+    float3 color3 = float3(0.90, 0.95, 0.98); // Pale blue
+    float3 color4 = float3(0.98, 0.93, 0.95); // Pale pink
+
+    // Mix colors based on fresnel and position
+    float mixFactor = sin(fresnel * 3.14 + time * 0.5) * 0.5 + 0.5;
+    float positionFactor = sin(warpedUV.x * 3.14) * cos(warpedUV.y * 3.14);
+
+    float3 rgb = mix(
+        mix(color1, color2, mixFactor),
+        mix(color3, color4, positionFactor * 0.5 + 0.5),
+        fresnel
+    );
+
+    // Add subtle sparkle
+    float sparkle = pow(
+        sin(warpedUV.x * 50.0 + time * 2.0) *
+        cos(warpedUV.y * 50.0 - time * 1.5),
+        20.0
+    ) * 0.1;
+
+    rgb += sparkle;
+
+    return half4(half3(rgb), 1.0);
+}
