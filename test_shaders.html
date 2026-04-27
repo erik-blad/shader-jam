@@ -645,21 +645,20 @@
 
                     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
 
-                    // Find stops to interpolate between
-                    int idx1 = 0;
-                    int idx2 = u_gradientCount - 1;
+                    // Clamp to first/last stop
+                    if (luminance <= u_gradientPos[0]) return u_gradientColors[0];
+                    if (luminance >= u_gradientPos[u_gradientCount - 1]) return u_gradientColors[u_gradientCount - 1];
 
+                    // Find stops and interpolate
                     for (int i = 0; i < 9; i++) {
                         if (i >= u_gradientCount - 1) break;
                         if (luminance >= u_gradientPos[i] && luminance <= u_gradientPos[i + 1]) {
-                            idx1 = i;
-                            idx2 = i + 1;
-                            break;
+                            float t = (luminance - u_gradientPos[i]) / (u_gradientPos[i + 1] - u_gradientPos[i] + 0.0001);
+                            return mix(u_gradientColors[i], u_gradientColors[i + 1], t);
                         }
                     }
 
-                    float t = (luminance - u_gradientPos[idx1]) / (u_gradientPos[idx2] - u_gradientPos[idx1] + 0.0001);
-                    return mix(u_gradientColors[idx1], u_gradientColors[idx2], t);
+                    return color;
                 }
         `;
 
