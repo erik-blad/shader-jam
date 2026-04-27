@@ -1116,6 +1116,8 @@
                         rgb += grain;
                     }
 
+                    rgb = applyGradientMap(rgb);
+
                     gl_FragColor = vec4(rgb, 1.0);
                 }
             `
