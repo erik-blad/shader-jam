@@ -755,6 +755,8 @@
                 uniform vec2 u_mouse;
                 uniform float u_grain;
 
+                ${gradientMapCode}
+
                 vec3 thinFilmColor(float thickness, float angle) {
                     vec3 wavelengths = vec3(640.0, 510.0, 460.0);
                     float filmThickness = thickness * 320.0 + 190.0;
@@ -801,6 +803,8 @@
                 uniform float u_time;
                 uniform vec2 u_mouse;
                 uniform float u_grain;
+
+                ${gradientMapCode}
 
                 float hash(vec2 p) {
                     p = fract(p * vec2(123.34, 456.21));
@@ -963,6 +967,8 @@
                 uniform float u_time;
                 uniform vec2 u_mouse;
                 uniform float u_grain;
+
+                ${gradientMapCode}
 
                 vec3 waveInterference(float thickness, float angle) {
                     vec3 wavelengths = vec3(670.0, 540.0, 440.0);
