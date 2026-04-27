@@ -247,6 +247,18 @@
             font-size: 11px;
         }
 
+        .color-stop input[type="text"] {
+            width: 80px;
+            padding: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
         .color-stop button {
             padding: 6px 12px;
             font-size: 10px;
@@ -485,6 +497,7 @@
                 div.className = 'color-stop';
                 div.innerHTML = `
                     <input type="color" value="${stop.color}" data-index="${index}">
+                    <input type="text" value="${stop.color}" data-index="${index}" class="hex-input" placeholder="#FFFFFF">
                     <input type="number" min="0" max="100" step="1" value="${Math.round(stop.pos * 100)}" data-index="${index}">
                     <span style="color: rgba(255,255,255,0.5);">%</span>
                     <button data-index="${index}" class="remove-stop">Remove</button>
@@ -492,12 +505,39 @@
                 colorStopsContainer.appendChild(div);
             });
 
-            // Add event listeners
+            // Add event listeners for color picker
             document.querySelectorAll('.color-stop input[type="color"]').forEach(input => {
                 input.addEventListener('input', (e) => {
                     const index = parseInt(e.target.dataset.index);
                     gradientStops[index].color = e.target.value;
+                    // Update hex input
+                    const hexInput = e.target.parentElement.querySelector('.hex-input');
+                    hexInput.value = e.target.value;
                     updateGradientPreview();
+                });
+            });
+
+            // Add event listeners for hex text input
+            document.querySelectorAll('.color-stop .hex-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    let hex = e.target.value.trim();
+                    // Add # if missing
+                    if (!hex.startsWith('#')) {
+                        hex = '#' + hex;
+                    }
+                    // Validate hex color (3 or 6 digit)
+                    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex)) {
+                        // Convert 3-digit to 6-digit
+                        if (hex.length === 4) {
+                            hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+                        }
+                        gradientStops[index].color = hex.toLowerCase();
+                        // Update color picker
+                        const colorPicker = e.target.parentElement.querySelector('input[type="color"]');
+                        colorPicker.value = hex.toLowerCase();
+                        updateGradientPreview();
+                    }
                 });
             });
 
