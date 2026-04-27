@@ -641,28 +641,53 @@
                 uniform vec3 u_gradientColors[10];
 
                 vec3 applyGradientMap(vec3 color) {
-                    if (u_useGradient < 0.5 || u_gradientCount < 2) return color;
+                    if (u_useGradient < 0.5) return color;
 
                     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
 
                     // Clamp to first stop
                     if (luminance <= u_gradientPos[0]) return u_gradientColors[0];
 
-                    // Find stops and interpolate
-                    vec3 result = u_gradientColors[9];
-                    for (int i = 0; i < 9; i++) {
-                        if (i >= u_gradientCount - 1) {
-                            result = u_gradientColors[i];
-                            break;
-                        }
-                        if (luminance >= u_gradientPos[i] && luminance <= u_gradientPos[i + 1]) {
-                            float t = (luminance - u_gradientPos[i]) / (u_gradientPos[i + 1] - u_gradientPos[i] + 0.0001);
-                            result = mix(u_gradientColors[i], u_gradientColors[i + 1], t);
-                            break;
-                        }
+                    // Check each pair of stops
+                    if (luminance >= u_gradientPos[0] && luminance <= u_gradientPos[1]) {
+                        float t = (luminance - u_gradientPos[0]) / (u_gradientPos[1] - u_gradientPos[0] + 0.0001);
+                        return mix(u_gradientColors[0], u_gradientColors[1], t);
+                    }
+                    if (luminance >= u_gradientPos[1] && luminance <= u_gradientPos[2]) {
+                        float t = (luminance - u_gradientPos[1]) / (u_gradientPos[2] - u_gradientPos[1] + 0.0001);
+                        return mix(u_gradientColors[1], u_gradientColors[2], t);
+                    }
+                    if (luminance >= u_gradientPos[2] && luminance <= u_gradientPos[3]) {
+                        float t = (luminance - u_gradientPos[2]) / (u_gradientPos[3] - u_gradientPos[2] + 0.0001);
+                        return mix(u_gradientColors[2], u_gradientColors[3], t);
+                    }
+                    if (luminance >= u_gradientPos[3] && luminance <= u_gradientPos[4]) {
+                        float t = (luminance - u_gradientPos[3]) / (u_gradientPos[4] - u_gradientPos[3] + 0.0001);
+                        return mix(u_gradientColors[3], u_gradientColors[4], t);
+                    }
+                    if (luminance >= u_gradientPos[4] && luminance <= u_gradientPos[5]) {
+                        float t = (luminance - u_gradientPos[4]) / (u_gradientPos[5] - u_gradientPos[4] + 0.0001);
+                        return mix(u_gradientColors[4], u_gradientColors[5], t);
+                    }
+                    if (luminance >= u_gradientPos[5] && luminance <= u_gradientPos[6]) {
+                        float t = (luminance - u_gradientPos[5]) / (u_gradientPos[6] - u_gradientPos[5] + 0.0001);
+                        return mix(u_gradientColors[5], u_gradientColors[6], t);
+                    }
+                    if (luminance >= u_gradientPos[6] && luminance <= u_gradientPos[7]) {
+                        float t = (luminance - u_gradientPos[6]) / (u_gradientPos[7] - u_gradientPos[6] + 0.0001);
+                        return mix(u_gradientColors[6], u_gradientColors[7], t);
+                    }
+                    if (luminance >= u_gradientPos[7] && luminance <= u_gradientPos[8]) {
+                        float t = (luminance - u_gradientPos[7]) / (u_gradientPos[8] - u_gradientPos[7] + 0.0001);
+                        return mix(u_gradientColors[7], u_gradientColors[8], t);
+                    }
+                    if (luminance >= u_gradientPos[8] && luminance <= u_gradientPos[9]) {
+                        float t = (luminance - u_gradientPos[8]) / (u_gradientPos[9] - u_gradientPos[8] + 0.0001);
+                        return mix(u_gradientColors[8], u_gradientColors[9], t);
                     }
 
-                    return result;
+                    // Default to last color
+                    return u_gradientColors[9];
                 }
         `;
 
