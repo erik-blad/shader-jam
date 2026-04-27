@@ -305,19 +305,7 @@
             <input type="range" id="grain" min="0" max="100" value="50">
         </div>
 
-        <div class="slider-container">
-            <span class="slider-label">Gradient</span>
-            <select id="gradient">
-                <option value="none">None</option>
-                <option value="purple-pink">Purple-Pink</option>
-                <option value="ocean">Ocean</option>
-                <option value="sunset">Sunset</option>
-                <option value="forest">Forest</option>
-                <option value="fire">Fire</option>
-                <option value="ice">Ice</option>
-                <option value="neon">Neon</option>
-            </select>
-        </div>
+        <button id="open-gradient">Gradient Map</button>
     </div>
 
     <div id="error"></div>
@@ -329,7 +317,7 @@
         const errorDiv = document.getElementById('error');
         const notificationDiv = document.getElementById('notification');
         const grainSlider = document.getElementById('grain');
-        const gradientSelect = document.getElementById('gradient');
+        const openGradientButton = document.getElementById('open-gradient');
         const gradientEditor = document.getElementById('gradient-editor');
         const gradientPreview = document.getElementById('gradient-preview');
         const colorStopsContainer = document.getElementById('color-stops-container');
@@ -410,19 +398,8 @@
             grainAmount = e.target.value / 100.0;
         });
 
-        // Gradient select
-        gradientSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'none') {
-                useGradientMap = false;
-                gradientStops = [];
-            } else {
-                useGradientMap = true;
-                gradientStops = JSON.parse(JSON.stringify(gradientPresets[e.target.value]));
-            }
-        });
-
-        // Double-click gradient select to open editor
-        gradientSelect.addEventListener('dblclick', () => {
+        // Open gradient editor button
+        openGradientButton.addEventListener('click', () => {
             openGradientEditor();
         });
 
@@ -579,7 +556,6 @@
 
         document.getElementById('apply-gradient').addEventListener('click', () => {
             useGradientMap = true;
-            gradientSelect.value = 'none'; // Set to custom
             gradientEditor.classList.remove('show');
             showNotification('Gradient map applied');
         });
