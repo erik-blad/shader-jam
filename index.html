@@ -142,6 +142,31 @@
             display: none;
             font-size: 13px;
         }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+            font-size: 11px;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #notification.show {
+            display: block;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -160,11 +185,13 @@
     </div>
 
     <div id="error"></div>
+    <div id="notification"></div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         const errorDiv = document.getElementById('error');
+        const notificationDiv = document.getElementById('notification');
         const grainSlider = document.getElementById('grain');
 
         // Set canvas to full screen
@@ -196,6 +223,42 @@
         // Grain slider
         grainSlider.addEventListener('input', (e) => {
             grainAmount = e.target.value / 100.0;
+        });
+
+        // Show notification
+        function showNotification(message) {
+            notificationDiv.textContent = message;
+            notificationDiv.classList.add('show');
+            setTimeout(() => {
+                notificationDiv.classList.remove('show');
+            }, 2000);
+        }
+
+        // Export current frame as PNG
+        function exportPNG() {
+            const currentShader = document.querySelector('button.active').id;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `shader-jam-${currentShader}-${timestamp}.png`;
+
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+
+                showNotification(`Exported ${filename}`);
+            }, 'image/png');
+        }
+
+        // Keyboard shortcuts
+        window.addEventListener('keydown', (e) => {
+            // Press 'S' or 'E' to export PNG
+            if (e.key === 's' || e.key === 'S' || e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+                exportPNG();
+            }
         });
 
         const vertexShaderSource = `
