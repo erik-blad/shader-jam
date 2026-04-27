@@ -240,16 +240,19 @@
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
             const filename = `shader-jam-${currentShader}-${timestamp}.png`;
 
-            canvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                link.click();
-                URL.revokeObjectURL(url);
+            // Wait for next frame to ensure render is complete
+            requestAnimationFrame(() => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.click();
+                    URL.revokeObjectURL(url);
 
-                showNotification(`Exported ${filename}`);
-            }, 'image/png');
+                    showNotification(`Exported ${filename}`);
+                }, 'image/png');
+            });
         }
 
         // Keyboard shortcuts
