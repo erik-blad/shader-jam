@@ -215,8 +215,40 @@
             width: 100%;
             height: 40px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             position: relative;
+            cursor: pointer;
+        }
+
+        .gradient-handle {
+            position: absolute;
+            top: -8px;
+            width: 16px;
+            height: 56px;
+            cursor: grab;
+            transform: translateX(-8px);
+            z-index: 10;
+        }
+
+        .gradient-handle:active {
+            cursor: grabbing;
+        }
+
+        .gradient-handle-inner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            background: var(--handle-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+        }
+
+        .gradient-handle-line {
+            width: 2px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 0 auto;
         }
 
         .color-stop {
@@ -403,6 +435,36 @@
             openGradientEditor();
         });
 
+        // Click on gradient preview to add color stop
+        gradientPreview.addEventListener('click', (e) => {
+            if (e.target.classList.contains('gradient-handle') ||
+                e.target.classList.contains('gradient-handle-inner') ||
+                e.target.classList.contains('gradient-handle-line')) {
+                return; // Don't add stop if clicking on handle
+            }
+
+            const rect = gradientPreview.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const pos = Math.max(0, Math.min(1, x / rect.width));
+
+            // Sample color at this position from gradient
+            const canvas = document.createElement('canvas');
+            canvas.width = rect.width;
+            canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradientStops.forEach(stop => gradient.addColorStop(stop.pos, stop.color));
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, 1);
+            const imageData = ctx.getImageData(x, 0, 1, 1).data;
+            const sampledColor = `#${[imageData[0], imageData[1], imageData[2]].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+
+            gradientStops.push({ pos: pos, color: sampledColor });
+            gradientStops.sort((a, b) => a.pos - b.pos);
+            renderColorStops();
+            updateGradientPreview();
+        });
+
         // Gradient editor functions
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -465,6 +527,70 @@
 
             gradientPreview.style.backgroundImage = `url(${canvas.toDataURL()})`;
             gradientPreview.style.backgroundSize = 'cover';
+
+            // Render draggable handles
+            const existingHandles = gradientPreview.querySelectorAll('.gradient-handle');
+            existingHandles.forEach(h => h.remove());
+
+            gradientStops.forEach((stop, index) => {
+                const handle = document.createElement('div');
+                handle.className = 'gradient-handle';
+                handle.style.left = (stop.pos * 100) + '%';
+                handle.dataset.index = index;
+                handle.innerHTML = `
+                    <div class="gradient-handle-inner" style="--handle-color: ${stop.color}"></div>
+                    <div class="gradient-handle-line"></div>
+                `;
+
+                // Drag functionality
+                let isDragging = false;
+                let startX = 0;
+
+                handle.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging || handle.dataset.index !== index.toString()) return;
+
+                    const rect = gradientPreview.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const pos = Math.max(0, Math.min(1, x / rect.width));
+
+                    gradientStops[index].pos = pos;
+                    handle.style.left = (pos * 100) + '%';
+
+                    // Update position input
+                    const posInput = document.querySelectorAll('.color-stop input[type="number"]')[index];
+                    if (posInput) {
+                        posInput.value = Math.round(pos * 100);
+                    }
+
+                    // Update gradient background
+                    const newCanvas = document.createElement('canvas');
+                    newCanvas.width = gradientPreview.offsetWidth;
+                    newCanvas.height = 40;
+                    const newCtx = newCanvas.getContext('2d');
+                    const newGradient = newCtx.createLinearGradient(0, 0, newCanvas.width, 0);
+                    gradientStops.forEach(s => newGradient.addColorStop(s.pos, s.color));
+                    newCtx.fillStyle = newGradient;
+                    newCtx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+                    gradientPreview.style.backgroundImage = `url(${newCanvas.toDataURL()})`;
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging && handle.dataset.index === index.toString()) {
+                        isDragging = false;
+                        gradientStops.sort((a, b) => a.pos - b.pos);
+                        renderColorStops();
+                        updateGradientPreview();
+                    }
+                });
+
+                gradientPreview.appendChild(handle);
+            });
         }
 
         function renderColorStops() {
